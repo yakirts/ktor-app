@@ -1,4 +1,4 @@
-# Iguzio Home Assignment
+## Iguzio Home Assignment
 
  
 
@@ -42,7 +42,7 @@ So, if the 5th line in the input file got the same response from both endpoints,
 
 Run App.kt , assign (inputFilePath,outputFilePath,endPoint1,endPoint2)
 
-# Throughput
+## Throughput
 
 | #requests | avg time(ms) 
 | :------------- | :-------------:|
