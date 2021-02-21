@@ -8,21 +8,22 @@ import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
-import org.apache.logging.log4j.core.Logger
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import java.io.Closeable
 import java.io.File
 import java.io.FileNotFoundException
-import java.util.logging.LogManager
+import java.util.*
 
 class IguazioAssignmentRunner(
-        inputFilePath: String,
-        outputFilePath: String,
-        private val endPoint1: String,
-        private val endPoint2: String
+    inputFilePath: String,
+    outputFilePath: String,
+    private val endPoint1: String,
+    private val endPoint2: String
 ) : Closeable {
 
     companion object {
-        val LOG : org.apache.logging.log4j.Logger = org.apache.logging.log4j.LogManager.getLogger(IguazioAssignmentRunner.javaClass)
+        val LOG: Logger = LogManager.getLogger(IguazioAssignmentRunner.javaClass)
     }
 
     private val inFile = File(inputFilePath)
@@ -62,9 +63,9 @@ class IguazioAssignmentRunner(
             LOG.debug("Finish sending $chunkSize AsyncRequests...")
 
             LOG.debug("Start processing response and write to disk...")
-            while (qIter.hasNext()) {
-                handleResponses(qIter)
-            }
+
+            while (qIter.hasNext()) handleResponses(qIter)
+
             LOG.debug("Done processing response and write to disk")
         }
 
@@ -73,36 +74,29 @@ class IguazioAssignmentRunner(
     }
 
     private suspend fun handleResponses(qIter: MutableIterator<BiDataHolder>) {
-        val biDataHolder = qIter.next()
-        val response1Text = biDataHolder.dh1.deferred.await()
-        val response2Text = biDataHolder.dh2.deferred.await()
-        outFile.appendText(
-                "${biDataHolder.dh1.offset} : $response1Text , $response2Text = ${
-                    stringMatcher.isMatch(
-                            response1Text,
-                            response2Text
-                    )
-                }\n"
-        )
-        println("${biDataHolder.dh1.offset} : $response1Text , $response2Text = ${response1Text == response2Text}")
+        val biDataHolder = qIter.withIndex().next()
+        val response1Text = biDataHolder.value.dh1.deferred.await()
+        val response2Text = biDataHolder.value.dh2.deferred.await()
+        outFile.appendText("${stringMatcher.isMatch(response1Text, response2Text)}\n")
+        if (biDataHolder.index % 10_000 == 0) LOG.debug("${biDataHolder.value.dh1.offset} : $response1Text , $response2Text = ${response1Text == response2Text}")
         qIter.remove()
     }
 
     private fun CoroutineScope.sendAsyncRequest(
-            entry: Map.Entry<Int, String>,
-            queue: ArrayDeque<BiDataHolder>
+        entry: Map.Entry<Int, String>,
+        queue: ArrayDeque<BiDataHolder>
     ) {
         val offset = entry.key
         val dataParam = entry.value
         //async requests here
         val dd1 = BiDataHolder.DeferredData(
-                offset = offset,
-                deferred = async(Dispatchers.IO) { sendRequest(httpClient, endPoint1, dataParam) }
+            offset = offset,
+            deferred = async(Dispatchers.IO) { sendRequest(httpClient, endPoint1, dataParam) }
         )
 
         val dd2 = BiDataHolder.DeferredData(
-                offset = offset,
-                deferred = async(Dispatchers.IO) { sendRequest(httpClient, endPoint2, dataParam) }
+            offset = offset,
+            deferred = async(Dispatchers.IO) { sendRequest(httpClient, endPoint2, dataParam) }
         )
         queue.addLast(BiDataHolder(dd1, dd2))
     }
@@ -124,10 +118,9 @@ private suspend fun sendRequest(client: HttpClient, url: String, param: String):
 
 data class BiDataHolder(val dh1: DeferredData, val dh2: DeferredData) {
     data class DeferredData(
-            val deferred: Deferred<String>,
-            val offset: Int
+        val deferred: Deferred<String>,
+        val offset: Int
     )
 }
-
 
 data class Content(val seed: String)
