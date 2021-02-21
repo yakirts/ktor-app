@@ -8,9 +8,11 @@ import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import org.apache.logging.log4j.core.Logger
 import java.io.Closeable
 import java.io.File
 import java.io.FileNotFoundException
+import java.util.logging.LogManager
 
 class IguazioAssignmentRunner(
         inputFilePath: String,
@@ -18,6 +20,10 @@ class IguazioAssignmentRunner(
         private val endPoint1: String,
         private val endPoint2: String
 ) : Closeable {
+
+    companion object {
+        val LOG : org.apache.logging.log4j.Logger = org.apache.logging.log4j.LogManager.getLogger(IguazioAssignmentRunner.javaClass)
+    }
 
     private val inFile = File(inputFilePath)
     private val outFile = File(outputFilePath)
@@ -49,21 +55,21 @@ class IguazioAssignmentRunner(
         val startTime = System.currentTimeMillis()
 
         inputMap.entries.chunked(chunkSize).forEach { chunk ->
-            println("Sending $chunkSize AsyncRequests...")
+            LOG.debug("Sending $chunkSize AsyncRequests...")
 
             chunk.forEach { entry -> sendAsyncRequest(entry, queue) }
 
-            println("Finish sending $chunkSize AsyncRequests...")
+            LOG.debug("Finish sending $chunkSize AsyncRequests...")
 
-            println("Start processing response and write to disk...")
+            LOG.debug("Start processing response and write to disk...")
             while (qIter.hasNext()) {
                 handleResponses(qIter)
             }
-            println("Done processing response and write to disk")
+            LOG.debug("Done processing response and write to disk")
         }
 
         val endTime = System.currentTimeMillis() - startTime
-        println("Total time sending ${inputMap.size} request , and writing to disk [took ${endTime}ms]")
+        LOG.debug("Total time sending ${inputMap.size} request , and writing to disk [took ${endTime}ms]")
     }
 
     private suspend fun handleResponses(qIter: MutableIterator<BiDataHolder>) {
