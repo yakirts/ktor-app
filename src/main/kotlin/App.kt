@@ -1,8 +1,8 @@
-import com.runner.SimpleHttpRunner
+import com.runner.IguazioAssignmentRunner
 
 
 suspend fun main() {
-    SimpleHttpRunner(
+    IguazioAssignmentRunner(
             inputFilePath = "input file here",
             outputFilePath = "./output.txt",
             endPoint1 = "http://localhost:8081/",

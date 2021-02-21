@@ -12,7 +12,7 @@ import java.io.Closeable
 import java.io.File
 import java.io.FileNotFoundException
 
-class SimpleHttpRunner(
+class IguazioAssignmentRunner(
         inputFilePath: String,
         outputFilePath: String,
         private val endPoint1: String,
