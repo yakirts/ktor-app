@@ -10,7 +10,7 @@ abstract class StringMatcher {
         fun createMatcher(className: String): StringMatcher {
             return when (className) {
                 "SimpleStringMatcher" -> CaseStringMatcher()
-                "ComplexStringMatcher" -> ComplexStringMatcher()
+                "ComplexStringMatcher" -> HashStringMatcher()
                 else -> DefaultStringMatcher()
             }
         }
@@ -29,7 +29,7 @@ class CaseStringMatcher : StringMatcher() {
     }
 }
 
-class ComplexStringMatcher : StringMatcher() {
+class HashStringMatcher : StringMatcher() {
     private val HASH = LongHashFunction.xx(0)
     private fun String.xxHash() = HASH.hashChars(this)
 
