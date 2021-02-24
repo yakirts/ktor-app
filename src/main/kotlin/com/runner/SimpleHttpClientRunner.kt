@@ -15,7 +15,7 @@ import java.io.File
 import java.io.FileNotFoundException
 
 
-class IguazioAssignmentRunner(
+class SimpleHttpClientRunner(
         inputFilePath: String,
         outputFilePath: String,
         private val endPoint1: String,
@@ -104,7 +104,7 @@ class IguazioAssignmentRunner(
     }
 
     companion object {
-        val LOG = getLogger(IguazioAssignmentRunner::class.java)
+        val LOG = getLogger(SimpleHttpClientRunner::class.java)
 
         private fun getLogger(forClass: Class<*>): Logger = LoggerFactory.getLogger(forClass)
     }
